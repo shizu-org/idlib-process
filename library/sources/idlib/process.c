@@ -13,15 +13,18 @@
 // memcmp, memcpy
 #include <string.h>
 
-
 #if IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
 
   #define WIN32_LEAN_AND_MEAN
   #include <Windows.h>
 
-  #include <inttypes.h>
+  // uint64_t
+  #include <stdint.h>
 
 #elif IDLIB_OPERATING_SYSTEM_LINUX == IDLIB_OPERATING_SYSTEM || IDLIB_OPERATING_SYSTEM_CYGWIN == IDLIB_OPERATING_SYSTEM
+
+  // uint64_t
+  #include <stdint.h>
 
 #else
 

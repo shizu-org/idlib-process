@@ -3,6 +3,13 @@
 
 #include "idlib/process/configure.h"
 
+#if IDLIB_OPERATING_SYSTEM_LINUX == IDLIB_OPERATING_SYSTEM || IDLIB_OPERATING_SYSTEM_CYGWIN == IDLIB_OPERATING_SYSTEM
+
+  // size_t
+  #include <stddef.h>
+
+#endif
+
 /**
  * @brief Symbolic constant indicating success.
  * This constant is the only error constant guaranteed to evaluate to the value zero.
