@@ -95,6 +95,9 @@ static idlib_process* g = NULL;
     if (!TryAcquireSRWLockExclusive(&g_lock)) {
       return IDLIB_LOCKED;
     }
+    if (!g) {
+      return IDLIB_UNKNOWN_ERROR;
+    }
     if (0 == g->reference_count) {
       ReleaseSRWLockExclusive(&g_lock);
       return IDLIB_UNKNOWN_ERROR; /*TODO: Use IDLIB_UNDERFLOW.*/
@@ -141,8 +144,12 @@ idlib_acquire_process
     if (!g) {
       return IDLIB_UNKNOWN_ERROR;
     }
-    g->dummy = 5012;
+    g->reference_count = 0;
   }
+  if (UINT64_MAX == g->reference_count) {
+    return IDLIB_UNKNOWN_ERROR; /*TODO: Use IDLIB_OVERFLOW.*/
+  }
+  g->reference_count++;
   *process = g;
 
 #else
@@ -175,8 +182,16 @@ idlib_relinquish_process
 
 #elif IDLIB_OPERATING_SYSTEM_LINUX == IDLIB_OPERATING_SYSTEM || IDLIB_OPERATING_SYSTEM_CYGWIN == IDLIB_OPERATING_SYSTEM
 
-  free(g);
-  g = NULL;
+  if (!g) {
+    return IDLIB_UNKNOWN_ERROR;
+  }
+  if (0 == g->reference_count) {
+    return IDLIB_UNKNOWN_ERROR; /*TODO: Use IDLIB_UNDERFLOW.*/
+  }
+  if (0 == --g->reference_count) {
+    free(g);
+    g = NULL;
+  }
 
 #else
 
