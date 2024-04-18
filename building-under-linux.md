@@ -13,7 +13,7 @@ The following instructions will perform an out-of-source build. An out-of-source
 by storing any build file, intermediate file, or product file in a dedicated build directory outside of the source directory.
 An out of source build is the recommended way of building *IdLib Process*.
 
-- Checkout `idlib-file-system` [https://github.com/michaelheilmann/idlib-process.git](https://github.com/michaelheilmann/idlib-process.git) into a directory in your file system.
+- Checkout `idlib-process` [https://github.com/michaelheilmann/idlib-process.git](https://github.com/michaelheilmann/idlib-process.git) into a directory in your file system.
   For the remainder of this manual, we call this directory *source directory* and denote it in command-line prompts by the meta variable `<source-directory>`.
 - Create a directory outside of the *source directory* in which the build will be performed.
   That directory *must not* reside in the source directory `<source-directory>`.
