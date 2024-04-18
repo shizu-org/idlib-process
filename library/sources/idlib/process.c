@@ -88,7 +88,7 @@ static idlib_process* g = NULL;
       idlib_process* p = malloc(sizeof(idlib_process));
       if (!p) {
         ReleaseSRWLockExclusive(&g_lock);
-        return IDLIB_UNKNOWN_ERROR;
+        return IDLIB_ALLOCATION_FAILED;
       }
       p->entries = NULL;
       p->reference_count = 0;
@@ -96,7 +96,7 @@ static idlib_process* g = NULL;
     }
     if (UINT64_MAX == g->reference_count) {
       ReleaseSRWLockExclusive(&g_lock);
-      return IDLIB_UNKNOWN_ERROR; /*TODO: Use IDLIB_OVERFLOW.*/
+      return IDLIB_OVERFLOW;
     }
     g->reference_count++;
     *process = g;
@@ -115,11 +115,11 @@ static idlib_process* g = NULL;
       return IDLIB_LOCKED;
     }
     if (!g) {
-      return IDLIB_UNKNOWN_ERROR;
+      return IDLIB_OPERATION_INVALID;
     }
     if (0 == g->reference_count) {
       ReleaseSRWLockExclusive(&g_lock);
-      return IDLIB_UNKNOWN_ERROR; /*TODO: Use IDLIB_UNDERFLOW.*/
+      return IDLIB_UNDERFLOW;
     }
     if (0 == --g->reference_count) {
       free(g);
@@ -148,11 +148,11 @@ idlib_acquire_process
 
   HMODULE module = GetModuleHandle(NULL);
   if (!module) {
-    return IDLIB_UNKNOWN_ERROR;
+    return IDLIB_ENVIRONMENT_FAILED;
   }
   int (*f)(idlib_process**) = (int (*)(idlib_process**))GetProcAddress(module, "acquire_impl");
   if (!f) {
-    return IDLIB_UNKNOWN_ERROR;
+    return IDLIB_NOT_EXISTS;
   }
   return (*f)(process);
 
@@ -161,12 +161,12 @@ idlib_acquire_process
   if (!g) {
     g = malloc(sizeof(idlib_process));
     if (!g) {
-      return IDLIB_UNKNOWN_ERROR;
+      return IDLIB_ALLOCATION_FAILED;
     }
     g->reference_count = 0;
   }
   if (UINT64_MAX == g->reference_count) {
-    return IDLIB_UNKNOWN_ERROR; /*TODO: Use IDLIB_OVERFLOW.*/
+    return IDLIB_OVERFLOW;
   }
   g->reference_count++;
   *process = g;
@@ -191,21 +191,21 @@ idlib_relinquish_process
 
   HMODULE module = GetModuleHandle(NULL);
   if (!module) {
-    return IDLIB_UNKNOWN_ERROR;
+    return IDLIB_ENVIRONMENT_FAILED;
   }
   int (*f)(idlib_process*) = (int (*)(idlib_process*))GetProcAddress(module, "relinquish_impl");
   if (!f) {
-    return IDLIB_UNKNOWN_ERROR;
+    return IDLIB_NOT_EXISTS;
   }
   return (*f)(process);
 
 #elif IDLIB_OPERATING_SYSTEM_LINUX == IDLIB_OPERATING_SYSTEM || IDLIB_OPERATING_SYSTEM_CYGWIN == IDLIB_OPERATING_SYSTEM
 
   if (!g) {
-    return IDLIB_UNKNOWN_ERROR;
+    return IDLIB_INVALID_OPERATION;
   }
   if (0 == g->reference_count) {
-    return IDLIB_UNKNOWN_ERROR; /*TODO: Use IDLIB_UNDERFLOW.*/
+    return IDLIB_UNDERFLOW;
   }
   if (0 == --g->reference_count) {
     free(g);

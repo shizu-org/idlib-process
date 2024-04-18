@@ -65,6 +65,8 @@ list(APPEND ${name}.configuration_files "${CMAKE_CURRENT_BINARY_DIR}/includes/id
 list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process.h")
 list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/idlib/process.c")
 
+list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/status.h")
+list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/idlib/process/status.c")
 end_library()
 
 source_group(TREE ${CMAKE_CURRENT_BINARY_DIR} FILES ${${name}.configuration_files})

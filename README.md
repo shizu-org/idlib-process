@@ -23,3 +23,8 @@ For development (or if you really want to use prebuilt binaries), you can do sta
 Find the build instrutions for the respective systems below:
 - [Building *IdLib File System*: Windows 11/Visual Studio Community](building-under-windows-11-visual-studio-community-20222)
 - [Building *IdLib File System*: Linux](building-under-linux)
+
+## Documentation
+The documentation is provided as a set of MarkDown files directly in this repository.
+
+Start reading the documentation here [documentation/idlib-process.md](documentation/idlib-process.md).
