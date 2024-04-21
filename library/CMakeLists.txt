@@ -1,5 +1,5 @@
 #
-# IdLib File System
+# IdLib Process
 # Copyright (C) 2018-2024 Michael Heilmann. All rights reserved.
 #
 # This software is provided 'as-is', without any express or implied
