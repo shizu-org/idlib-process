@@ -32,6 +32,9 @@ macro(begin_library)
   set(${name}.source_files "")
   set(${name}.header_files "")
   set(${name}.configuration_files "")
+  # Asset files are transitive.
+  # plugin libraries and executables copy asset files to their output directory.
+  set(${name}.asset_files "")
 
   define_languages(${name})
   detect_c_compiler(${name})
@@ -63,6 +66,9 @@ macro(begin_executable)
   set(${name}.source_files "")
   set(${name}.header_files "")
   set(${name}.configuration_files "")
+  # Asset files are transitive.
+  # plugin libraries and executables copy asset files to their output directory.
+  set(${name}.asset_files "")
 
   define_languages(${name})
   detect_c_compiler(${name})
@@ -89,6 +95,9 @@ macro(begin_plugin_library)
   set(${name}.source_files "")
   set(${name}.header_files "")
   set(${name}.configuration_files "")
+  # Asset files are transitive.
+  # plugin libraries and executables copy asset files to their output directory.
+  set(${name}.asset_files "")
 
   define_languages(${name})
   detect_c_compiler(${name})
