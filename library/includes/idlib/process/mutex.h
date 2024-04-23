@@ -19,43 +19,38 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#if !defined(IDLIB_PROCESS_STATUS_H_INCLUDED)
-#define IDLIB_PROCESS_STATUS_H_INCLUDED
+#if !defined(IDLIB_PROCESS_MUTEX_H_INCLUDED)
+#define IDLIB_PROCESS_MUTEX_H_INCLUDED
 
-#include "idlib/process/configure.h"
+// The type of a mutex.
+typedef struct idlib_mutex idlib_mutex;
 
-#define IDLIB_SUCCESS (0)
+struct idlib_mutex {
+  void* pimpl;
+}; // struct idlib_mutex
 
-#define IDLIB_ENVIRONMENT_FAILED (1)
+int
+idlib_mutex_initialize
+  (
+    idlib_mutex *mutex
+  );
 
-#define IDLIB_ARGUMENT_INVALID (2)
+int
+idlib_mutex_uninitialize
+  (
+    idlib_mutex *mutex
+  );
 
-#define IDLIB_OPERATION_INVALID (3)
+int
+idlib_mutex_lock
+  (
+    idlib_mutex* mutex
+  );
 
-#define IDLIB_ABORTED (4)
+int
+idlib_mutex_unlock
+  (
+    idlib_mutex* mutex
+  );
 
-#define IDLIB_LOCKED (5)
-
-#define IDLIB_NOT_LOCKED (6)
-
-#define IDLIB_LOCK_FAILED (7)
-
-#define IDLIB_ALLOCATION_FAILED (8)
-
-#define IDLIB_TOO_BIG (9)
-
-#define IDLIB_TOO_SMALL (10)
-
-#define IDLIB_OVERFLOW (11)
-
-#define IDLIB_UNDERFLOW (12)
-
-#define IDLIB_EXISTS (13)
-
-#define IDLIB_NOT_EXISTS (14)
-
-#define IDLIB_ALREADY_STARTED (15)
-
-#define IDLIB_ALREADY_STOPPED (16)
-
-#endif // IDLIB_PROCESS_STATUS_H_INCLUDED
+#endif // IDLIB_PROCESS_MUTEX_H_INCLUDED

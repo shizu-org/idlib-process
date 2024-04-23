@@ -24,6 +24,7 @@
 
 #include "idlib/process/configure.h"
 #include "idlib/process/status.h"
+#include "idlib/process/mutex.h"
 
 #if IDLIB_OPERATING_SYSTEM_LINUX == IDLIB_OPERATING_SYSTEM || IDLIB_OPERATING_SYSTEM_CYGWIN == IDLIB_OPERATING_SYSTEM
 

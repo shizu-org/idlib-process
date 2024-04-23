@@ -21,6 +21,8 @@
 
 // TODO:
 // - Linux version not yet thread-safe.
+
+#define IDLIB_PROCESS_PRIVATE (1)
 #include "idlib/process.h"
 
 // fprintf, stderr
@@ -32,15 +34,19 @@
 // memcmp, memcpy
 #include <string.h>
 
-#if IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
-
-  #define WIN32_LEAN_AND_MEAN
-  #include <Windows.h>
+#if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
 
   // uint64_t
   #include <stdint.h>
 
-#elif IDLIB_OPERATING_SYSTEM_LINUX == IDLIB_OPERATING_SYSTEM || IDLIB_OPERATING_SYSTEM_CYGWIN == IDLIB_OPERATING_SYSTEM
+  #include <pthread.h>
+
+#elif IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
+
+  #define WIN32_LEAN_AND_MEAN
+  #include <Windows.h>
 
   // uint64_t
   #include <stdint.h>
@@ -67,7 +73,14 @@ struct idlib_process {
 
 static idlib_process* g = NULL;
 
-#if IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
+
+#if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
+
+  static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
+
+#elif IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
 
   // We do not lock recursively and inter-process is out of scope.
   static SRWLOCK g_lock = SRWLOCK_INIT;
@@ -129,8 +142,6 @@ static idlib_process* g = NULL;
     return IDLIB_SUCCESS;
   }
 
-#elif IDLIB_OPERATING_SYSTEM_LINUX == IDLIB_OPERATING_SYSTEM || IDLIB_OPERATING_SYSTEM_CYGWIN == IDLIB_OPERATING_SYSTEM
-
 #else
 
   #error("operating system not (yet) supported")
@@ -144,7 +155,31 @@ idlib_acquire_process
   )
 {
 
-#if IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
+#if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
+
+  if (pthread_mutex_lock(&g_lock)) {
+    return IDLIB_LOCK_FAILED;
+  }
+  
+  if (!g) {
+    g = malloc(sizeof(idlib_process));
+    if (!g) {
+      pthread_mutex_unlock(&g_lock);
+      return IDLIB_ALLOCATION_FAILED;
+    }
+    g->reference_count = 0;
+  }
+  if (UINT64_MAX == g->reference_count) {
+    pthread_mutex_unlock(&g_lock);
+    return IDLIB_OVERFLOW;
+  }
+  g->reference_count++;
+  *process = g;
+  pthread_mutex_unlock(&g_lock);
+
+#elif IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
 
   HMODULE module = GetModuleHandle(NULL);
   if (!module) {
@@ -155,21 +190,6 @@ idlib_acquire_process
     return IDLIB_NOT_EXISTS;
   }
   return (*f)(process);
-
-#elif IDLIB_OPERATING_SYSTEM_LINUX == IDLIB_OPERATING_SYSTEM || IDLIB_OPERATING_SYSTEM_CYGWIN == IDLIB_OPERATING_SYSTEM
-
-  if (!g) {
-    g = malloc(sizeof(idlib_process));
-    if (!g) {
-      return IDLIB_ALLOCATION_FAILED;
-    }
-    g->reference_count = 0;
-  }
-  if (UINT64_MAX == g->reference_count) {
-    return IDLIB_OVERFLOW;
-  }
-  g->reference_count++;
-  *process = g;
 
 #else
 
@@ -187,7 +207,28 @@ idlib_relinquish_process
   )
 {
 
-#if IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
+#if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
+
+  if (pthread_mutex_lock(&g_lock)) {
+    return IDLIB_LOCK_FAILED;
+  }
+  if (!g) {
+    pthread_mutex_unlock(&g_lock);
+    return IDLIB_OPERATION_INVALID;
+  }
+  if (0 == g->reference_count) {
+    pthread_mutex_unlock(&g_lock);
+    return IDLIB_UNDERFLOW;
+  }
+  if (0 == --g->reference_count) {
+    free(g);
+    g = NULL;
+  }
+  pthread_mutex_unlock(&g_lock);
+
+#elif IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
 
   HMODULE module = GetModuleHandle(NULL);
   if (!module) {
@@ -198,19 +239,6 @@ idlib_relinquish_process
     return IDLIB_NOT_EXISTS;
   }
   return (*f)(process);
-
-#elif IDLIB_OPERATING_SYSTEM_LINUX == IDLIB_OPERATING_SYSTEM || IDLIB_OPERATING_SYSTEM_CYGWIN == IDLIB_OPERATING_SYSTEM
-
-  if (!g) {
-    return IDLIB_INVALID_OPERATION;
-  }
-  if (0 == g->reference_count) {
-    return IDLIB_UNDERFLOW;
-  }
-  if (0 == --g->reference_count) {
-    free(g);
-    g = NULL;
-  }
 
 #else
 
