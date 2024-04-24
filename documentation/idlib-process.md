@@ -6,9 +6,7 @@ Welcome to *IdLib Process*.
 - signals
 - values indicating the outcomes of operations
 
-## *IdLib Process* intended use
 The library is designed as *backing* library to be integrated into other C programs.
-
 
 ## Modules
 - The *status* module provides functionality related outcomes of operations

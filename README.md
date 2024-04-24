@@ -11,7 +11,7 @@ Follow these steps to integrate this library into your CMake-based project:
 
 - Create a directory for external dependencies within your project directory. For example `3rdparty`.
 - Create a folder `idlib-process` in that directory.
-- Download/checkout *IdLib Process* into that folder such that the contents of the directory in which this `README.md` file is located in directly resides under `3rdparty/process`.
+- Download/checkout *IdLib Process* into that folder such that the contents of the directory in which this `README.md` file is located in directly resides under `3rdparty/idlib-process`.
 - Add to your project the `3rdparty/idlib-process/CMakeLists.txt` using `add_subdirectory`.
 - Link your target `YourTarget` to *IdLib Process* using `target_link_libraries(YourTarget idlib-process)`.
 - In your C/C++ code, you now can include now the functionality of *IdLib Process* by adding the preprocessor include directive `#include "idlib/process.h"`.
