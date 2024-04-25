@@ -98,3 +98,26 @@ macro(detect_cpp_compiler target)
   message( STATUS " - ${target} C++ compiler: ${${target}.compiler_cpp}")
 
 endmacro()
+
+# Macro to define an enumeration of MASM compilers and detect what MASM compiler is used.
+#
+# First, the enumeration constants ${target}_compiler_masm_(unknown|masm) are defined.
+# Each constant is a string of an unique name identifying an MASM compiler.
+#
+# Second, the constant ${target}.compiler_masm is set to the {target}.compiler_masm_* values denoting the detected MASM compiler.
+#
+# @param target The target.
+macro(detect_masm_compiler target)
+  # An unknown compiler.
+  set(${target}.compiler_masm_unkown "<unknown>")
+
+  # MASM.
+  set(${target}.compiler_masm_masm "MASM")
+
+  # Initialize if not yet initialized.
+  if (NOT DEFINED ${target}.compiler_masm)
+    set(${target}.compiler_masm ${${target}.compiler_masm_unknown})
+  endif()
+  message( STATUS " - ${target} MASM compiler: ${${target}.compiler_masm}")
+
+endmacro()

@@ -22,6 +22,7 @@
 # Macro to detect a multi target generator is used.
 # Set ${target}.is_multi_target_generator to "YES" (a multi target generator is used) or "NO" (a single target generator is used).
 # @param target The target.
+# @todo Use "https://cmake.org/cmake/help/latest/prop_gbl/GENERATOR_IS_MULTI_CONFIG.html".
 macro(detect_multi_target_generator target)
   if (NOT DEFINED ${target}.compiler_c)
     message(FATAL_ERROR "please execute detect_compiler before detect_multi_target_generator")
