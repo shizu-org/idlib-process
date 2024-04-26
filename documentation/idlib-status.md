@@ -20,8 +20,10 @@ The following table lists the name of the symbolic constant in its left column a
 | `IDLIB_TOO_BIG`            | Indicates failure because something was too big.                                                                                  |
 | `IDLIB_TOO_SMALL`          | Indicates failure because something was too small.                                                                                |
 | `IDLIB_OVERFLOW`           | Indicates failure because of an overflow.                                                                                         |
-| `IDLIB_UNDERFLOW`          | Indicates failure because of an underflow.                                                                                        | 
-| `IDLIB_UNDERFLOW`          | Indicates failure because of an underflow.                                                                                        | 
+| `IDLIB_UNDERFLOW`          | Indicates failure because of an underflow.                                                                                        |
+| `IDLIB_UNDERFLOW`          | Indicates failure because of an underflow.                                                                                        |
 | `IDLIB_EXISTS`             | Indicates failure because something existed (but should not have).                                                                |
 | `IDLIB_NOT_EXISTS`         | Indicates failure because something did not exist (but should have existed).                                                      |
 | `IDLIB_NOT_REPRESENTABLE`  | Indicates failure because a value is not representable by a type.                                                                 |
+| `IDLIB_ALREADY_STARTED`    | Indicates failure because something was already started.                                                                          |
+| `IDLIB_ALREADY_STOPPED`    | Indicates failure because something was already stopped.                                                                          |
