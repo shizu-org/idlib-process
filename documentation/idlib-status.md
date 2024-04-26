@@ -24,3 +24,4 @@ The following table lists the name of the symbolic constant in its left column a
 | `IDLIB_UNDERFLOW`          | Indicates failure because of an underflow.                                                                                        | 
 | `IDLIB_EXISTS`             | Indicates failure because something existed (but should not have).                                                                |
 | `IDLIB_NOT_EXISTS`         | Indicates failure because something did not exist (but should have existed).                                                      |
+| `IDLIB_NOT_REPRESENTABLE`  | Indicates failure because a value is not representable by a type.                                                                 |
