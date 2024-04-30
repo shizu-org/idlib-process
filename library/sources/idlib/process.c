@@ -329,6 +329,7 @@ idlib_remove_global
         return IDLIB_SUCCESS;
       }
     }
+    previous = &current->next;
     current = current->next;
   }
   return IDLIB_NOT_EXISTS;
