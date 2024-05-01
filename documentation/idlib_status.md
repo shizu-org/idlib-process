@@ -1,9 +1,14 @@
-# Idlib Status Values
+# `idlib_status`
 
-**Description**
+## C Signature
+```
+typedef <implementation> idlib_status;
+```
+
+## Description
 Type of a non-negative integer values indicating the outcome of an operation.
-The acceptable values of this type defined by this library are given by symbolic constants.
-The symbolic constant `IDLIB_SUCCESS` is the only symbolic constant evaluating to the zero integer value.
+
+The values of this type are denoted by symbolic constants.
 
 The following table lists the name of the symbolic constant in its left column and the description of the symbolic constant in its right column.
 

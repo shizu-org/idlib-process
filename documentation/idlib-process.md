@@ -8,7 +8,11 @@ Welcome to *IdLib Process*.
 
 The library is designed as *backing* library to be integrated into other C programs.
 
-## Modules
-- The *status* module provides functionality related outcomes of operations
-  [idlib-status.md](idlib-status.md)
- 
+## Documentation
+- [idlib_status.md](idlib_status.md)
+- [idlib_process.md](idlib_process.md)
+- [idlib_process_acquire.md](idlib_process_acquire.md)
+- [idlib_process_relinquish.md](idlib_process_relinquish.md)
+- [idlib_mutex.md](idlib_mutex.md)
+- [idlib_mutex_initialize.md](idlib_mutex_initialite.md)
+- [idlib_mutex_uninitialize.md](idlib_mutex_uninitialize.md)
