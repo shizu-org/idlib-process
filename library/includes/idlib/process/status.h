@@ -23,6 +23,9 @@
 #define IDLIB_PROCESS_STATUS_H_INCLUDED
 
 #include "idlib/process/configure.h"
+#include <inttypes.h>
+
+typedef uint32_t idlib_status;
 
 #define IDLIB_SUCCESS (0)
 
