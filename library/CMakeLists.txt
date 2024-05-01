@@ -80,6 +80,9 @@ list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/pro
 list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/idlib/process/condition_impl.c")
 list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/condition_impl.h")
 
+#list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/thread.c")
+#list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/thread.h")
+
 end_library()
 
 source_group(TREE ${CMAKE_CURRENT_BINARY_DIR} FILES ${${name}.configuration_files})

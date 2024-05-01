@@ -1,0 +1,57 @@
+#include "Nucleus/Concurrency/Winapi/Thread-private.h.in"
+
+#if (Nucleus_OperatingSystem == Nucleus_OperatingSystem_WINDOWS) && \
+    !defined(Nucleus_Threads_Pthreads)
+
+static DWORD WINAPI
+callback
+    (
+        void *p
+    )
+{
+    Nucleus_Concurrency_ThreadImpl *impl = (Nucleus_Concurrency_ThreadImpl *)p;
+    SetState(impl, Nucleus_Concurrency_ThreadState_Started);
+    impl->status = impl->callbackFunction(impl->callbackContext);
+    SetState(impl, Nucleus_Concurrency_ThreadState_Terminated);
+    return impl;
+}
+
+Nucleus_NonNull() static void
+lock
+    (
+        Nucleus_Concurrency_ThreadImpl *impl
+    )
+{ Nucleus_Concurrency_Mutex_lock(&impl->mutex); }
+
+Nucleus_NonNull() static void
+unlock
+    (
+        Nucleus_Concurrency_ThreadImpl *impl
+    )
+{ Nucleus_Concurrency_Mutex_unlock(&impl->mutex); }
+
+Nucleus_NonNull() static int
+GetState
+    (
+        Nucleus_Concurrency_ThreadImpl *impl
+    )
+{
+    lock(impl);
+    int state = impl->state;
+    unlock(impl);
+    return state;
+}
+
+Nucleus_NonNull() static void
+SetState
+    (
+        Nucleus_Concurrency_ThreadImpl *impl,
+        int state
+    )
+{
+    lock(impl);
+    impl->state = state;
+    unlock(impl);
+}
+
+#endif
