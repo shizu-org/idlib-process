@@ -19,43 +19,50 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#if !defined(IDLIB_PROCESS_MUTEX_H_INCLUDED)
-#define IDLIB_PROCESS_MUTEX_H_INCLUDED
+#if !defined(IDLIB_PROCESS_CONDITION_H_INCLUDED)
+#define IDLIB_PROCESS_CONDITION_H_INCLUDED
 
 #include "idlib/process/configure.h"
 #include "idlib/process/status.h"
 typedef struct idlib_condition idlib_condition;
 typedef struct idlib_mutex idlib_mutex;
 
-// The type of a mutex.
-typedef struct idlib_mutex idlib_mutex;
+// The type of a condition.
+typedef struct idlib_condition idlib_condition;
 
-struct idlib_mutex {
+struct idlib_condition {
   void* pimpl;
-}; // struct idlib_mutex
+}; // struct idlib_condition
 
 idlib_status
-idlib_mutex_initialize
+idlib_condition_intialize
   (
-    idlib_mutex *mutex
+    idlib_condition* condition
   );
 
 idlib_status
-idlib_mutex_uninitialize
+idlib_condition_uninitialize
   (
-    idlib_mutex *mutex
+    idlib_condition* condition
   );
 
 idlib_status
-idlib_mutex_lock
+idlib_condition_wait
   (
+    idlib_condition* condition,
     idlib_mutex* mutex
   );
 
 idlib_status
-idlib_mutex_unlock
+idlib_condition_signal_one
   (
-    idlib_mutex* mutex
+    idlib_condition* condition
   );
 
-#endif // IDLIB_PROCESS_MUTEX_H_INCLUDED
+idlib_status
+idlib_condition_signal_all
+  (
+    idlib_condition* condition
+  );
+
+#endif  // IDLIB_PROCESS_CONDITION_H_INCLUDED

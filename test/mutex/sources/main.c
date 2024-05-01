@@ -1,6 +1,6 @@
 /*
   IdLib Process
-  Copyright (C) 2018-2024 Michael Heilmann. All rights reserved.
+  Copyright (C) 2023-2024 Michael Heilmann. All rights reserved.
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,43 +19,52 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#if !defined(IDLIB_PROCESS_MUTEX_H_INCLUDED)
-#define IDLIB_PROCESS_MUTEX_H_INCLUDED
+#include "idlib/process.h"
 
-#include "idlib/process/configure.h"
-#include "idlib/process/status.h"
-typedef struct idlib_condition idlib_condition;
-typedef struct idlib_mutex idlib_mutex;
+#include <stdlib.h>
 
-// The type of a mutex.
-typedef struct idlib_mutex idlib_mutex;
-
-struct idlib_mutex {
-  void* pimpl;
-}; // struct idlib_mutex
-
-idlib_status
-idlib_mutex_initialize
+static int
+test1
   (
-    idlib_mutex *mutex
-  );
+  )
+{
+  idlib_status status;
+  idlib_mutex mutex;
+  status = idlib_mutex_initialize(NULL);
+  if (IDLIB_ARGUMENT_INVALID != status) {
+    return IDLIB_ENVIRONMENT_FAILED;
+  }
+  status = idlib_mutex_initialize(&mutex);
+  if (status) {
+    return status;
+  }
+  status = idlib_mutex_lock(&mutex);
+  if (status) {
+    idlib_mutex_uninitialize(&mutex);
+    return status;
+  }
+  status = idlib_mutex_unlock(&mutex);
+  if (status) {
+    idlib_mutex_uninitialize(&mutex);
+    return status;
+  }
+  status = idlib_mutex_uninitialize(&mutex);
+  if (status) {
+    return status;
+  }
+  return IDLIB_SUCCESS;
+}
 
-idlib_status
-idlib_mutex_uninitialize
+int
+main
   (
-    idlib_mutex *mutex
-  );
+    int argc,
+    char** argv
+  )
+{
+  if (test1()) {
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
 
-idlib_status
-idlib_mutex_lock
-  (
-    idlib_mutex* mutex
-  );
-
-idlib_status
-idlib_mutex_unlock
-  (
-    idlib_mutex* mutex
-  );
-
-#endif // IDLIB_PROCESS_MUTEX_H_INCLUDED

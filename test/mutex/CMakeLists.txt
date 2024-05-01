@@ -21,10 +21,10 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-include(${idlib-process-cmake-files-dir}/all.cmake)
+include(${idlib-process.source-dir}/cmake/all.cmake)
 
-set(name idlib-process)
-begin_library()
+set(name idlib-process.test.mutex)
+begin_executable()
 
 if (${${name}.compiler_c} STREQUAL ${${name}.compiler_c_msvc})
   set("IDLIB_COMPILER_C" "IDLIB_COMPILER_C_MSVC")
@@ -58,38 +58,36 @@ else()
   message(FATAL_ERROR "operating system detection not executed")
 endif()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/configure.h.in ${CMAKE_CURRENT_BINARY_DIR}/includes/idlib/process/configure.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/includes/configure.h.in ${CMAKE_CURRENT_BINARY_DIR}/includes/configure.h)
 
-list(APPEND ${name}.configuration_files "${CMAKE_CURRENT_BINARY_DIR}/includes/idlib/process/configure.h")
+list(APPEND ${name}.configuration_files "${CMAKE_CURRENT_BINARY_DIR}/includes/configure.h")
+list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/main.c")
 
-list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process.h")
-list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/idlib/process.c")
-
-list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/status.h")
-list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/idlib/process/status.c")
-
-list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/idlib/process/mutex.c")
-list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/mutex.h")
-list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/idlib/process/mutex_impl.c")
-list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/mutex_impl.h")
-
-list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/idlib/process/condition.c")
-list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/condition.h")
-list(APPEND ${name}.source_files "${CMAKE_CURRENT_SOURCE_DIR}/sources/idlib/process/condition_impl.c")
-list(APPEND ${name}.header_files "${CMAKE_CURRENT_SOURCE_DIR}/includes/idlib/process/condition_impl.h")
-
-end_library()
+end_executable()
 
 source_group(TREE ${CMAKE_CURRENT_BINARY_DIR} FILES ${${name}.configuration_files})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${${name}.header_files})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${${name}.source_files})
 
+target_link_libraries(${name} PRIVATE idlib-process)
 
-# We must link libpthread under Linux.
-if (${${name}.operating_system_id} EQUAL ${${name}.operating_system_id_linux})
-
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads REQUIRED)
-  target_link_libraries(${name} PRIVATE Threads::Threads)
-
+if (${${name}.compiler_c} STREQUAL ${${name}.compiler_c_msvc})
+  set_property(TARGET ${name} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${name}>")
 endif()
+
+add_test(NAME ${name}
+         WORKING_DIRECTORY $<TARGET_FILE_DIR:${name}>
+         COMMAND ${name})
+
+# Copy the assets to the current binary directory.
+file(GLOB_RECURSE files_to_copy RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/assets" "${CMAKE_CURRENT_SOURCE_DIR}/assets/*.*" )
+
+foreach (file_to_copy ${files_to_copy})
+  # Copy the test data into the SAME directory in which the executable resides in by using the generator expression $<TARGET_FILE_DIR:${name}>.
+  add_custom_command(
+    TARGET ${name} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/assets/${file_to_copy}"
+                                                   "$<TARGET_FILE_DIR:${name}>/assets/${file_to_copy}"
+    COMMAND_EXPAND_LISTS
+  )
+endforeach()

@@ -21,8 +21,7 @@
 
 #include "idlib/process/mutex.h"
 
-#include "idlib/process/configure.h"
-#include "idlib/process/status.h"
+#include "idlib/process/mutex_impl.h"
 
 #include <malloc.h>
 
@@ -37,7 +36,7 @@
   #error("operating system not (yet) supported")
 #endif
 
-int
+idlib_status
 idlib_mutex_initialize
   (
     idlib_mutex* mutex
@@ -46,33 +45,39 @@ idlib_mutex_initialize
   if (!mutex) {
     return IDLIB_ARGUMENT_INVALID;
   }
+  idlib_mutex_impl* pimpl = malloc(sizeof(idlib_mutex_impl));
+  if (!pimpl) {
+    return IDLIB_ALLOCATION_FAILED;
+  }
 #if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
-  pthread_mutex_t* backend = malloc(sizeof(pthread_mutex_t));
-  if (!backend) {
-    return IDLIB_ALLOCATION_FAILED;
-  }
-  int result = pthread_mutex_init(backend, NULL);
+  pthread_mutexattr_t attr;
+  pthread_mutexattr_init(&attr);
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+  int result = pthread_mutex_init(&pimpl->mtx, &attr);
+  pthread_mutexattr_destroy(&attr);
   if (result) {
-    free(backend);
-    backend = NULL;
+    free(pimpl);
+    pimpl = NULL;
     return IDLIB_ENVIRONMENT_FAILED;
   }
-  mutex->pimpl = backend;
+  mutex->pimpl = pimpl;
 #elif (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_WINDOWS)
-  HANDLE handle = CreateMutex(NULL, FALSE, NULL);
-  if (!handle) {
+  pimpl->mtx = CreateMutex(NULL, FALSE, NULL);
+  if (!pimpl->mtx) {
+    free(pimpl);
+    pimpl = NULL;
     return IDLIB_ENVIRONMENT_FAILED;
   }
-  mutex->pimpl = handle;
+  mutex->pimpl = pimpl;
 #else
   #error("operating system not (yet) supported")
 #endif
   return IDLIB_SUCCESS;
 }
 
-int
+idlib_status
 idlib_mutex_uninitialize
   (
     idlib_mutex* mutex
@@ -81,25 +86,24 @@ idlib_mutex_uninitialize
   if (!mutex) {
     return IDLIB_ARGUMENT_INVALID;
   }
+  idlib_mutex_impl* pimpl = (idlib_mutex_impl*)mutex->pimpl;
+  mutex->pimpl = NULL;
 #if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
-  pthread_mutex_t* backend = (pthread_mutex_t*)mutex->pimpl;
-  mutex->pimpl = NULL;
-  pthread_mutex_destroy(backend);
-  free(backend);
+  pthread_mutex_destroy(&pimpl->mtx);
 #elif (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_WINDOWS)
-  HANDLE backend = (HANDLE)mutex->pimpl;
-  mutex->pimpl = NULL;
-  CloseHandle(backend);
-  backend = NULL;
+  CloseHandle(pimpl->mtx);
+  pimpl->mtx = NULL;
 #else
   #error("operating system not (yet) supported")
 #endif
+  free(pimpl);
+  pimpl = NULL;
   return IDLIB_SUCCESS;
 }
 
-int
+idlib_status
 idlib_mutex_lock
   (
     idlib_mutex* mutex
@@ -108,15 +112,16 @@ idlib_mutex_lock
   if (!mutex) {
     return IDLIB_ARGUMENT_INVALID;
   }
+  idlib_mutex_impl* pimpl = (idlib_mutex_impl*)mutex->pimpl;
 #if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
-  int result = pthread_mutex_lock((pthread_mutex_t*)mutex->pimpl);
+  int result = pthread_mutex_lock(&pimpl->mtx);
   if (result) {
     return IDLIB_LOCK_FAILED;
   }
 #elif (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_WINDOWS)
-  DWORD result = WaitForSingleObject((HANDLE)mutex->pimpl, INFINITE);
+  DWORD result = WaitForSingleObject(pimpl->mtx, INFINITE);
   switch (result) {
     case WAIT_OBJECT_0: {
       return IDLIB_SUCCESS;
@@ -130,7 +135,7 @@ idlib_mutex_lock
 #endif
 }
 
-int
+idlib_status
 idlib_mutex_unlock
   (
     idlib_mutex* mutex
@@ -139,12 +144,13 @@ idlib_mutex_unlock
   if (!mutex) {
     return IDLIB_ARGUMENT_INVALID;
   }
+  idlib_mutex_impl* pimpl = (idlib_mutex_impl*)mutex->pimpl;
 #if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
-  pthread_mutex_unlock((pthread_mutex_t*)mutex->pimpl);
+  pthread_mutex_unlock(&pimpl->mtx);
 #elif (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_WINDOWS)
-  ReleaseMutex((HANDLE)mutex->pimpl);
+  ReleaseMutex(pimpl->mtx);
 #else
   #error("operating system not (yet) supported")
 #endif

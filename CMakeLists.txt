@@ -23,8 +23,20 @@ cmake_minimum_required(VERSION 3.20)
 
 project(idlib-process LANGUAGES C)
 
+set(idlib-process.source-dir CACHE STRING "IdLib Process: Path to the source directory")
+if (NOT idlib-process.source-dir)
+  set(idlib-process.source-dir "${CMAKE_CURRENT_SOURCE_DIR}")
+endif()
+
+set(idlib-process.binary-dir CACHE STRING "IdLib Process: Path to the build directory")
+if (NOT idlib-process.binary-dir)
+  set(idlib-process.binary-dir "${CMAKE_CURRENT_BINARY_DIR}")
+endif()
+
 set(idlib-process-cmake-files-dir "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 add_subdirectory(library)
 
 enable_testing()
+add_subdirectory(test/process)
+add_subdirectory(test/mutex)

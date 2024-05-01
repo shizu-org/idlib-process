@@ -78,7 +78,7 @@ idlib_process_relinquish
  * @remarks 
  * This function is mt-safe.
  */
-int
+idlib_status
 idlib_add_global
   (
     idlib_process* process,
@@ -101,7 +101,7 @@ idlib_add_global
  * @remarks 
  * This function is mt-safe.
  */
-int
+idlib_status
 idlib_get_global
   (
     idlib_process* process,
@@ -120,7 +120,7 @@ idlib_get_global
  * - IDLIB_ARGUMENT_INVALID if `process` or `p` is null
  * - IDLIB_NOT_EXISTS if no global is registered for the key `p` and `n` 
  */
-int
+idlib_status
 idlib_remove_global
   (
     idlib_process* process,

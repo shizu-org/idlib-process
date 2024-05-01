@@ -59,6 +59,8 @@
 
 typedef struct _entry _entry;
 
+typedef struct _entries _entries;
+
 struct _entry {
   _entry* next;
   void *p;
@@ -66,10 +68,25 @@ struct _entry {
   void* v;
 };
 
+struct _entries {
+  _entry* entries;
+};
+
 struct idlib_process {
   uint64_t reference_count;
-  _entry* entries; 
+  _entries entries; 
 };
+
+static idlib_status
+initialize_entries(_entries* entries) {
+  entries->entries = NULL;
+  return IDLIB_SUCCESS;
+}
+
+static idlib_status
+uninitialize_entries(_entries* entries) {
+  return IDLIB_SUCCESS;
+}
 
 static idlib_process* g = NULL;
 
@@ -81,10 +98,10 @@ static idlib_process* g = NULL;
 
 #elif IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
 
-  // We do not lock recursively and inter-process is out of scope.
-  static SRWLOCK g_lock = SRWLOCK_INIT;
-  
-  __declspec(dllexport) int
+  // The system will free this handle automatically when the process exits.
+  static volatile HANDLE g_lock = NULL;
+
+  __declspec(dllexport) idlib_status
   acquire_impl
     (
       idlib_process** process
@@ -93,51 +110,61 @@ static idlib_process* g = NULL;
     if (!process) {
       return IDLIB_ARGUMENT_INVALID;
     }
-    if (!TryAcquireSRWLockExclusive(&g_lock)) {
+    if (!InterlockedCompareExchangePointer((volatile void*)&g_lock,NULL, NULL)) {
+      HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
+      if (!mutex) {
+        return IDLIB_ENVIRONMENT_FAILED;
+      }
+      if (NULL != InterlockedCompareExchangePointer((volatile void*)&g_lock, (void*)mutex, NULL)) {
+        CloseHandle(mutex);
+        mutex = NULL;
+      }
+    }
+    if (WAIT_FAILED == WaitForSingleObject(InterlockedCompareExchangePointer((volatile void*)&g_lock, NULL, NULL), INFINITE)) {
       return IDLIB_LOCKED;
     }
     if (!g) {
       idlib_process* p = malloc(sizeof(idlib_process));
       if (!p) {
-        ReleaseSRWLockExclusive(&g_lock);
+        ReleaseMutex(InterlockedCompareExchangePointer((volatile void*)&g_lock, NULL, NULL));
         return IDLIB_ALLOCATION_FAILED;
       }
-      p->entries = NULL;
+      initialize_entries(&p->entries);
       p->reference_count = 0;
       g = p;
     }
     if (UINT64_MAX == g->reference_count) {
-      ReleaseSRWLockExclusive(&g_lock);
+      ReleaseMutex(InterlockedCompareExchangePointer((volatile void*)&g_lock, NULL, NULL));
       return IDLIB_OVERFLOW;
     }
     g->reference_count++;
     *process = g;
-    ReleaseSRWLockExclusive(&g_lock);
+    ReleaseMutex(InterlockedCompareExchangePointer((volatile void*)&g_lock, NULL, NULL));
     return IDLIB_SUCCESS;
-
   }
 
-  __declspec(dllexport) int
+  __declspec(dllexport) idlib_status
   relinquish_impl
     (
       idlib_process** process
     )
   {
-    if (!TryAcquireSRWLockExclusive(&g_lock)) {
+    if (WAIT_FAILED == WaitForSingleObject(InterlockedCompareExchangePointer((volatile void*)&g_lock, NULL, NULL), INFINITE)) {
       return IDLIB_LOCKED;
     }
     if (!g) {
       return IDLIB_OPERATION_INVALID;
     }
     if (0 == g->reference_count) {
-      ReleaseSRWLockExclusive(&g_lock);
+      ReleaseMutex(InterlockedCompareExchangePointer((volatile void*)&g_lock, NULL, NULL));
       return IDLIB_UNDERFLOW;
     }
     if (0 == --g->reference_count) {
+      uninitialize_entries(&g->entries);
       free(g);
       g = NULL;
     }
-    ReleaseSRWLockExclusive(&g_lock);
+    ReleaseMutex(InterlockedCompareExchangePointer((volatile void*)&g_lock, NULL, NULL));
     return IDLIB_SUCCESS;
   }
 
@@ -153,7 +180,9 @@ idlib_process_acquire
     idlib_process** process
   )
 {
-
+  if (!process) {
+    return IDLIB_ARGUMENT_INVALID;
+  }
 #if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
@@ -168,6 +197,7 @@ idlib_process_acquire
       pthread_mutex_unlock(&g_lock);
       return IDLIB_ALLOCATION_FAILED;
     }
+    initialize_entries(&g->entries);
     g->reference_count = 0;
   }
   if (UINT64_MAX == g->reference_count) {
@@ -180,11 +210,13 @@ idlib_process_acquire
 
 #elif IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
 
+  // We use GetModuleHandle(NULL) for that we always use the same instance of acquire_impl
+  // that always uses the same instance of g_lock.
   HMODULE module = GetModuleHandle(NULL);
   if (!module) {
     return IDLIB_ENVIRONMENT_FAILED;
   }
-  int (*f)(idlib_process**) = (int (*)(idlib_process**))GetProcAddress(module, "acquire_impl");
+  idlib_status (*f)(idlib_process**) = (idlib_status(*)(idlib_process**))GetProcAddress(module, "acquire_impl");
   if (!f) {
     return IDLIB_NOT_EXISTS;
   }
@@ -222,6 +254,7 @@ idlib_process_relinquish
     return IDLIB_UNDERFLOW;
   }
   if (0 == --g->reference_count) {
+    uninitialize_entries(&g->entries);
     free(g);
     g = NULL;
   }
@@ -229,11 +262,13 @@ idlib_process_relinquish
 
 #elif IDLIB_OPERATING_SYSTEM_WINDOWS == IDLIB_OPERATING_SYSTEM
 
+  // We use GetModuleHandle(NULL) for that we always use the same instance of relinquish_impl
+  // that always uses the same instance of g_lock.
   HMODULE module = GetModuleHandle(NULL);
   if (!module) {
     return IDLIB_ENVIRONMENT_FAILED;
   }
-  int (*f)(idlib_process*) = (int (*)(idlib_process*))GetProcAddress(module, "relinquish_impl");
+  idlib_status(*f)(idlib_process*) = (idlib_status (*)(idlib_process*))GetProcAddress(module, "relinquish_impl");
   if (!f) {
     return IDLIB_NOT_EXISTS;
   }
@@ -248,7 +283,7 @@ idlib_process_relinquish
   return IDLIB_SUCCESS;
 }
 
-int
+idlib_status
 idlib_add_global
   (
     idlib_process* process,
@@ -257,7 +292,7 @@ idlib_add_global
     void* v
   )
 {
-  _entry* entry = process->entries;
+  _entry* entry = process->entries.entries;
   while (entry) {
     if (entry->n == n) {
       if (!memcmp(entry->p, p, n)) {
@@ -279,12 +314,12 @@ idlib_add_global
   memcpy(entry->p, p, n);
   entry->n = n;
   entry->v = v;
-  entry->next = process->entries;
-  process->entries = entry;
+  entry->next = process->entries.entries;
+  process->entries.entries = entry;
   return IDLIB_SUCCESS;
 }
  
-int
+idlib_status
 idlib_get_global
   (
     idlib_process* process,
@@ -293,7 +328,7 @@ idlib_get_global
     void** v
   )
 {
-  _entry* entry = process->entries;
+  _entry* entry = process->entries.entries;
   while (entry) {
     if (entry->n == n) {
       if (!memcmp(entry->p, p, n)) {
@@ -306,7 +341,7 @@ idlib_get_global
   return IDLIB_NOT_EXISTS;
 }
 
-int
+idlib_status
 idlib_remove_global
   (
     idlib_process* process,
@@ -317,8 +352,8 @@ idlib_remove_global
   if (!process || !p) {
     return IDLIB_ARGUMENT_INVALID;
   }
-  _entry** previous = &process->entries;
-  _entry* current = process->entries;
+  _entry** previous = &process->entries.entries;
+  _entry* current = process->entries.entries;
   while (current) {
     if (current->n == n) {
       if (!memcmp(current->p, p, n)) {

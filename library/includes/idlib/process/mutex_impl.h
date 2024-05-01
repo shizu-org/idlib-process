@@ -19,43 +19,33 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#if !defined(IDLIB_PROCESS_MUTEX_H_INCLUDED)
-#define IDLIB_PROCESS_MUTEX_H_INCLUDED
+#if !defined(IDLIB_PROCESS_MUTEX_IMPL_H_INCLUDED)
+#define IDLIB_PROCESS_MUTEX_IMPL_H_INCLUDED
 
 #include "idlib/process/configure.h"
-#include "idlib/process/status.h"
-typedef struct idlib_condition idlib_condition;
-typedef struct idlib_mutex idlib_mutex;
 
-// The type of a mutex.
-typedef struct idlib_mutex idlib_mutex;
+#if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
+  #include <pthread.h>
+#elif (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_WINDOWS)
+  #define WIN32_LEAN_AND_MEAN
+  #include <Windows.h>
+#else
+  #error("operating system not (yet) supported")
+#endif
 
-struct idlib_mutex {
-  void* pimpl;
-}; // struct idlib_mutex
+typedef struct idlib_mutex_impl {
+#if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
+    (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
+  pthread_mutex_t mtx;
+#elif (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_WINDOWS)
+  HANDLE mtx;
+#else
+  #error("operating system not (yet) supported")
+#endif
+} idlib_mutex_impl;
 
-idlib_status
-idlib_mutex_initialize
-  (
-    idlib_mutex *mutex
-  );
 
-idlib_status
-idlib_mutex_uninitialize
-  (
-    idlib_mutex *mutex
-  );
-
-idlib_status
-idlib_mutex_lock
-  (
-    idlib_mutex* mutex
-  );
-
-idlib_status
-idlib_mutex_unlock
-  (
-    idlib_mutex* mutex
-  );
-
-#endif // IDLIB_PROCESS_MUTEX_H_INCLUDED
+#endif // IDBLIB_PROCESS_MUTEX_IMPL_H_INCLUDED
