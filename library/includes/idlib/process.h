@@ -46,8 +46,8 @@ typedef struct idlib_process idlib_process;
  * @return #IDLIB_SUCCESS on success. A non-zero return value on failure.
  * @success <code>*process</code> was a assigned a pointer to the idlib_process_manager value singleton.
  */
-int
-idlib_acquire_process
+idlib_status
+idlib_process_acquire
   (
     idlib_process** process
   );
@@ -58,8 +58,8 @@ idlib_acquire_process
  * @param process A pointer to an idlib_process value.
  * @return #IDLIB_SUCCESS on success. A non-zero return value on failure.
  */
-int
-idlib_relinquish_process
+idlib_status
+idlib_process_relinquish
   (
     idlib_process* process
   );

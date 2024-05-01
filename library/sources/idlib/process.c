@@ -73,7 +73,6 @@ struct idlib_process {
 
 static idlib_process* g = NULL;
 
-
 #if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
@@ -148,8 +147,8 @@ static idlib_process* g = NULL;
 
 #endif
 
-int
-idlib_acquire_process
+idlib_status
+idlib_process_acquire
   (
     idlib_process** process
   )
@@ -200,8 +199,8 @@ idlib_acquire_process
   return IDLIB_SUCCESS;
 }
 
-int
-idlib_relinquish_process
+idlib_status
+idlib_process_relinquish
   (
     idlib_process* process
   )
