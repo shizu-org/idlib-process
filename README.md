@@ -4,25 +4,18 @@
 - singleton-scoped recursive intra-process mutex.
 *IdLib Process* is licensed under the [zlib License](LICENSE).
 
-## Integration into your CMake project
+## Integrating into CMake projects
 Integrating *IdLib Process* into the sources of your CMake-based project is the intended use of *IdLib Process*.
+For information on the integration of *IdLib Process* with your CMake-based project, see
+[Integrating *Process* in CMake-based projects](integrating-into-cmake-projects.md).
 
-Follow these steps to integrate this library into your CMake-based project:
-
-- Create a directory for external dependencies within your project directory. For example `3rdparty`.
-- Create a folder `idlib-process` in that directory.
-- Download/checkout *IdLib Process* into that folder such that the contents of the directory in which this `README.md` file is located in directly resides under `3rdparty/idlib-process`.
-- Add to your project the `3rdparty/idlib-process/CMakeLists.txt` using `add_subdirectory`.
-- Link your target `YourTarget` to *IdLib Process* using `target_link_libraries(YourTarget idlib-process)`.
-- In your C/C++ code, you now can include now the functionality of *IdLib Process* by adding the preprocessor include directive `#include "idlib/process.h"`.
-
-## Building
+## Development
 For development (or if you really want to use prebuilt binaries), you can do standalone builds of *IdLib Process*.
 
 *IdLib Process* has been tested to build and run both under *Windows 11* and *Linux*.
 Find the build instrutions for the respective systems below:
-- [Building *IdLib Process*: Windows 11/Visual Studio Community](building-under-windows-11-visual-studio-community-20222)
-- [Building *IdLib Process*: Linux](building-under-linux)
+- [Building *IdLib Process* under Windows 11/Visual Studio Community](building-under-windows-11-visual-studio-community-20222)
+- [Building *IdLib Process* under Linux](building-under-linux)
 
 ## Documentation
 The documentation is provided as a set of MarkDown files directly in this repository.
