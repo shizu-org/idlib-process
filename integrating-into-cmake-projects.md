@@ -46,9 +46,9 @@ FetchContent_MakeAvailable(idlib-process)
 ```
 And you can use *IdLib Process* by linking the library target `idlib-process` to a target `<target>`
 ```
-target_link_libraries(my-target idlib-process)
+target_link_libraries(<target> idlib-process)
 ```
-and by adding the include-directive  
+and by adding the include directive  
 ```
 #include "idlib/process.h"
 ```
