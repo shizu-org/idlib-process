@@ -25,15 +25,60 @@
 
 #include <malloc.h>
 
+#include <stdio.h>
+
+#define IDLIB_MUTEX_LOG (1)
+
 #if (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_LINUX)  || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_CYGWIN) || \
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
   #include <pthread.h>
+  #if defined(IDLIB_MUTEX_LOG)
+    #include <errno.h>
+  #endif
 #elif (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_WINDOWS)
   #define WIN32_LEAN_AND_MEAN
   #include <Windows.h>
 #else
   #error("operating system not (yet) supported")
+#endif
+
+#if defined(IDLIB_MUTEX_LOG)
+
+static char const*
+errno_value_to_string
+  (
+    int errno_value
+  )
+{
+  switch (errno_value) {
+    case EINVAL: {
+      static const char* STRING = "EINVAL";
+      return STRING;
+    } break;
+    case EBUSY: {
+      static const char* STRING = "EBUSY";
+      return STRING;
+    } break;
+    case EAGAIN: {
+      static const char* STRING = "EAGAIN";
+      return STRING;
+    } break;
+    case EDEADLK: {
+      static const char* STRING = "EDEADLK";
+      return STRING;
+    } break;
+    case EPERM: {
+      static const char* STRING = "EPERM";
+      return STRING;
+    } break;
+    default: {
+      static const char* STRING = "<unknown>";
+      return STRING;
+    } break;
+  };
+}
+
 #endif
 
 idlib_status
@@ -118,6 +163,9 @@ idlib_mutex_lock
     (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_MACOS)
   int result = pthread_mutex_lock(&pimpl->mtx);
   if (result) {
+  #if defined(IDLIB_MUTEX_LOG)
+    fprintf(stderr, "%s:%d: %s failed with %s\n", __FILE__, __LINE__, "pthread_mutex_lock", errno_value_to_string(result));
+  #endif
     return IDLIB_LOCK_FAILED;
   }
 #elif (IDLIB_OPERATING_SYSTEM == IDLIB_OPERATING_SYSTEM_WINDOWS)
@@ -133,6 +181,7 @@ idlib_mutex_lock
 #else
   #error("operating system not (yet) supported")
 #endif
+  return IDLIB_SUCCESS;
 }
 
 idlib_status

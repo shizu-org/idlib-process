@@ -23,6 +23,8 @@
 
 #include <stdlib.h>
 
+#include <stdio.h>
+
 static int
 test1
   (
@@ -30,28 +32,36 @@ test1
 {
   idlib_status status;
   idlib_mutex mutex;
+
   status = idlib_mutex_initialize(NULL);
   if (IDLIB_ARGUMENT_INVALID != status) {
+    fprintf(stderr, "%s:%d: test failed\n", __FILE__, __LINE__);
     return IDLIB_ENVIRONMENT_FAILED;
   }
+
   status = idlib_mutex_initialize(&mutex);
   if (status) {
+    fprintf(stderr, "%s:%d: test failed\n", __FILE__, __LINE__);
     return status;
   }
   status = idlib_mutex_lock(&mutex);
   if (status) {
+    fprintf(stderr, "%s:%d: test failed\n", __FILE__, __LINE__);
     idlib_mutex_uninitialize(&mutex);
     return status;
   }
   status = idlib_mutex_unlock(&mutex);
   if (status) {
+    fprintf(stderr, "%s:%d: test failed\n", __FILE__, __LINE__);
     idlib_mutex_uninitialize(&mutex);
     return status;
   }
   status = idlib_mutex_uninitialize(&mutex);
   if (status) {
+    fprintf(stderr, "%s:%d: test failed\n", __FILE__, __LINE__);
     return status;
   }
+  fprintf(stderr, "%s:%d: test success\n", __FILE__, __LINE__);
   return IDLIB_SUCCESS;
 }
 
