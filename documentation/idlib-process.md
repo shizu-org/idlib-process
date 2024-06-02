@@ -1,11 +1,8 @@
 # IdLib Processs
 Welcome to *IdLib Process*.
-
-*IdLib Process* is a C library providing functionality for
-- concurrency
-- signals
-- values indicating the outcomes of operations
-
+*IdLib Process* provides cross-platform (Windows and Linux) intra-process functionality:
+- singleton root object that is thread-safe, reference counted, and retains its singleton property also when using DLLs in Windows.
+- singleton-scoped recursive intra-process mutex.
 The library is designed as *backing* library to be integrated into other C programs.
 
 ## Documentation

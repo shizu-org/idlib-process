@@ -1,7 +1,8 @@
 # IdLib Process
-*IdLib Process* provides cross-platform (Windows and Linux) intra-process functionality for embedding into C programs:
+*IdLib Process* provides cross-platform (Windows and Linux) intra-process functionality:
 - singleton root object that is thread-safe, reference counted, and retains its singleton property also when using DLLs in Windows.
 - singleton-scoped recursive intra-process mutex.
+The library is designed as *backing* library to be integrated into other C programs.
 *IdLib Process* is licensed under the [zlib License](LICENSE).
 
 ## Integrating into CMake projects
